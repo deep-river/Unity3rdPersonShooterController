@@ -20,6 +20,12 @@ public class CrouchState : MovementBaseState
 
         if (movement.vInput < 0) movement.currentMoveSpeed = movement.crouchBackSpeed;
         else movement.currentMoveSpeed = movement.crouchSpeed;
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            movement.previousState = this;
+            ExitState(movement, movement.Jump);
+        }
     }
 
     void ExitState(MovementStateManager movement, MovementBaseState state)
