@@ -21,7 +21,7 @@ public class MovementStateManager : MonoBehaviour
     [SerializeField] float gravity = -9.81f;
     Vector3 velocity;
 
-    MovementBaseState currentState;
+    [HideInInspector] public MovementBaseState currentState;
 
     public IdleState Idle = new IdleState();
     public WalkState Walk = new WalkState();

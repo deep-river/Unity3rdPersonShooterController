@@ -41,6 +41,6 @@ public class WeaponAmmo : MonoBehaviour
             }
         }
 
-        weapon.UpdateUI(currentAmmo, extraAmmo);
+        weapon.UpdateAmmoUI(currentAmmo, extraAmmo);
     }
 }

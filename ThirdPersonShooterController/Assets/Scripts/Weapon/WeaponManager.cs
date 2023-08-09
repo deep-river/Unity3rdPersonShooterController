@@ -24,7 +24,15 @@ public class WeaponManager : MonoBehaviour
     public TMP_Text currentAmmoText;
     public TMP_Text extraAmmoText;
 
+    WeaponBloom bloom;
+
     ActionStateManager actions;
+    WeaponRecoil recoil;
+
+    Light muzzleFlashLight;
+    ParticleSystem muzzleFlashParticles;
+    float lightIntensity;
+    [SerializeField] float lightReturnSpeed = 20;
 
     // Start is called before the first frame update
     void Start()
@@ -32,16 +40,23 @@ public class WeaponManager : MonoBehaviour
         aim = GetComponentInParent<AimStateManager>();
         audioSource = GetComponent<AudioSource>();
         ammo = GetComponent<WeaponAmmo>();
+        bloom = GetComponent<WeaponBloom>();
         actions = GetComponentInParent<ActionStateManager>();
+        recoil = GetComponent<WeaponRecoil>();
+        muzzleFlashLight = GetComponentInChildren<Light>();
+        lightIntensity = muzzleFlashLight.intensity;
+        muzzleFlashLight.intensity = 0;
+        muzzleFlashParticles = GetComponentInChildren<ParticleSystem>();
 
         fireRateTimer = fireRate;
-        UpdateUI(ammo.currentAmmo, ammo.extraAmmo);
+        UpdateAmmoUI(ammo.currentAmmo, ammo.extraAmmo);
     }
 
     // Update is called once per frame
     void Update()
     {
         if (ShouldFire()) Fire();
+        muzzleFlashLight.intensity = Mathf.Lerp(muzzleFlashLight.intensity, 0, lightReturnSpeed * Time.deltaTime);
     }
 
     bool ShouldFire()
@@ -59,20 +74,31 @@ public class WeaponManager : MonoBehaviour
     {
         fireRateTimer = 0;
         barrelPos.LookAt(aim.aimPos);
+        barrelPos.localEulerAngles = bloom.ApplyBloomAngle(barrelPos);
+
         audioSource.PlayOneShot(gunShot);
         ammo.currentAmmo--;
+        TriggerMuzzleFlash();
+        recoil.TriggerRecoil();
+
         for (int i = 0; i < bulletPerShot; i++)
         {
             GameObject currentBullet = Instantiate(bullet, barrelPos.position, barrelPos.rotation);
             Rigidbody rb = currentBullet.GetComponent<Rigidbody>();
             rb.AddForce(barrelPos.forward * bulletVelocity, ForceMode.Impulse);
         }
-        UpdateUI(ammo.currentAmmo, ammo.extraAmmo);
+        UpdateAmmoUI(ammo.currentAmmo, ammo.extraAmmo);
     }
 
-    public void UpdateUI(int currentAmmo, int extraAmmo)
+    public void UpdateAmmoUI(int currentAmmo, int extraAmmo)
     {
         currentAmmoText.text = currentAmmo.ToString();
         extraAmmoText.text = extraAmmo.ToString();
+    }
+
+    void TriggerMuzzleFlash()
+    {
+        muzzleFlashParticles.Play();
+        muzzleFlashLight.intensity = lightIntensity;
     }
 }
